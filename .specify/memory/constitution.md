@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-- Version change: template/unversioned → 1.0.0
-- Modified principles: none; replaced scaffold placeholders with three project principles
-- Added sections: Information Integrity; Requirements and Human Review
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: III. Requirements Before Implementation → III. Source Provenance and Review
+- Added sections: none
 - Removed sections: none
-- Follow-up TODOs: confirm the original ratification date
+- Follow-up TODOs: confirm original ratification date
 -->
 
 # University Information Assistant Constitution
@@ -23,10 +23,12 @@ provide a reliable answer. It MUST prefer saying that it does not know or direct
 user to an appropriate university office over generating an unsupported answer. This
 prevents false confidence and provides a safe path to authoritative help.
 
-### III. Requirements Before Implementation
-Every feature MUST have clear, reviewable, and testable requirements before implementation
-begins. Important ambiguities MUST be resolved by humans rather than silently decided by
-AI. This makes scope and expected behavior explicit before engineering effort is committed.
+### III. Source Provenance and Review
+Every source added to the approved corpus MUST be traceable to an official university
+document, webpage, or office record. If a document is ingested, it is treated as reviewed
+by a human for the purposes of this pilot, and no separate mandatory human-review gate
+is required before the source may be used in official answers. This preserves source
+accountability without creating duplicate review steps for accepted material.
 
 ## Information Integrity
 
@@ -38,9 +40,10 @@ the conflict MUST be surfaced and the system MUST follow the Fail Safely princip
 ## Requirements and Human Review
 
 Feature work MUST include reviewable requirements and acceptance criteria before coding.
-Human review is required for unresolved policy interpretation, material scope decisions,
-and changes that could alter the system's handling of authoritative information. Reviews
-MUST confirm compliance with this constitution and record any accepted limitations.
+For ingested documents, explicit human review is not a separate mandatory gate: ingestion
+itself is the approval action when the source is added to the approved corpus and its
+provenance is recorded. A later dispute, conflict, or source quality issue still requires
+the system to escalate, document the issue, and reclassify or remove the source as needed.
 
 ## Governance
 
@@ -55,4 +58,4 @@ Every feature specification, implementation plan, code review, and release revie
 consider compliance with the principles above. Non-compliance MUST be corrected before
 release or explicitly recorded as a maintainer-approved exception with mitigation.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): confirm original adoption date | **Last Amended**: 2026-09-14
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): confirm original adoption date | **Last Amended**: 2026-09-16
