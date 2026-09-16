@@ -8,6 +8,16 @@
 
 **Input**: User description: Create a chatbot for Purdue University Northwest students that answers common university questions using approved, current university information and directs students to authoritative sources or offices when it cannot answer reliably.
 
+## Clarifications
+
+### Session 2026-09-16
+
+- Q: Which channel should the first release target for student questions? → A: Public website chat widget on official PNW pages.
+- Q: Which source approval model should guide the pilot? → A: Fixed approved corpus with scheduled review.
+- Q: Should the pilot support anonymous student use only, or do you also want authenticated student context in the first release? → A: Anonymous only for pilot.
+- Q: What level of human review is required before a new source is approved for the pilot? → A: No mandatory review before use.
+- Q: Should the first release include a visible way for students to report incorrect answers or broken links? → A: No feedback in pilot.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Get a Reliable Answer to a University Question (Priority: P1)
@@ -87,6 +97,11 @@ As a student, I want to ask a follow-up question about the current topic so that
 ### Functional Requirements
 
 - **FR-001**: The chatbot MUST accept student questions in plain language about PNW policies, rules, deadlines, procedures, programs, courses, campus services, and responsible offices.
+- **FR-001A**: The initial release MUST be available as a public website chat widget on official PNW web pages, with broader campus integration channels deferred to a later phase unless a separate approved launch plan is established.
+- **FR-001B**: The chatbot MUST answer questions only from a fixed approved PNW information corpus for the pilot, with periodic scheduled review and re-approval required before new source material is used in official answers.
+- **FR-001C**: The pilot MUST operate without authenticated student context and must not require access to personal academic, financial, or disciplinary records in order to answer general information questions.
+- **FR-001D**: The pilot does not require mandatory human review before a new source is used, but all official answers must still be traceable to approved material and any unsupported or conflicting content must trigger a safe refusal.
+- **FR-001E**: The pilot does not include a dedicated student feedback mechanism; any future reporting workflow must be introduced in a later release with explicit review and approval.
 - **FR-002**: The chatbot MUST answer policy-related questions only from approved PNW information identified as authoritative for the topic.
 - **FR-003**: Each answer that relies on official information MUST identify the supporting official page, document, form, or office.
 - **FR-004**: The chatbot MUST present answers in clear language that summarizes the relevant action, requirement, date, or contact information without requiring the student to inspect multiple unrelated pages.
