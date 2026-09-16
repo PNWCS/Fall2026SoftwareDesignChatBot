@@ -48,6 +48,12 @@
 - **Rationale**: A public anonymous endpoint can be scripted, abused, or used to generate unexpected model costs. These controls protect availability and reduce privacy risk.
 - **Alternatives considered**: Wildcard CORS and unrestricted requests are simpler but inappropriate for an official public service.
 
+## Decision 9: Use Google Gemini through a backend-only provider boundary
+
+- **Decision**: Call Google Gemini through the official `google-genai` Python client from the FastAPI backend. Select a free-tier-eligible Gemini model through configuration rather than hard-coding a model name in the API contract.
+- **Rationale**: Gemini provides a practical hosted LLM option for the pilot while the backend boundary keeps the API key out of the browser and allows source filtering, structured-output validation, timeout handling, and provider replacement without changing the frontend contract. Free-tier quotas and model availability can change, so deployment configuration must remain adjustable.
+- **Alternatives considered**: A paid-only hosted model could offer higher quotas but adds pilot cost; a locally hosted model avoids provider quotas but increases infrastructure and operations requirements; exposing the provider directly to the frontend would leak credentials and bypass grounding controls.
+
 ## Operational clarification
 
 The spec combines a fixed approved corpus with no mandatory human review before a new source is used. The implementation interprets this as follows: only entries marked `approved` in the corpus can answer students; ingestion may be automated, but unapproved entries remain ineligible; scheduled review can mark entries expired, blocked, or archived. When effective dates are unavailable, the source remains eligible only while its explicit review window is valid.

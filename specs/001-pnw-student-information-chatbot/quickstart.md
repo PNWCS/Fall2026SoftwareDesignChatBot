@@ -7,7 +7,7 @@ This guide validates the pilot design described in [plan.md](plan.md), [data-mod
 - Docker Engine and Docker Compose
 - Python 3.12 with `pytest` for backend tests
 - Node.js 20+ with npm for frontend tests
-- A configured model-provider endpoint and API key for answer-generation tests
+- A Google Gemini API key and a configured free-tier-eligible Gemini model name for answer-generation tests; keep the key in the backend environment and never expose it to the frontend
 - A seeded test corpus containing at least one approved current source, one expired source, one conflicting pair, one campus-specific source, and one escalation destination
 
 ## Start the pilot stack
