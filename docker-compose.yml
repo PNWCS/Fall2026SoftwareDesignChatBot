@@ -1,0 +1,91 @@
+# Docker Compose lets us describe several related containers in one file.
+# A container is a lightweight, isolated process with everything it needs to run.
+# Compose creates the containers together and puts them on the same private network,
+# so the backend can reach the database by service name instead of by localhost.
+
+services:
+  # The FastAPI application receives chat requests from the frontend. The backend
+  # Dockerfile will be created in T004; this service definition is prepared now so
+  # that the complete pilot stack has one command for starting it later.
+  backend:
+    build:
+      # The build context is the directory whose files Docker may read while building.
+      # Keeping it at ./backend prevents unrelated repository files entering the image.
+      context: ./backend 
+      dockerfile: Dockerfile
+    ports:
+      # Left side is the host port; right side is the container port.
+      # Visit the API from this computer at http://localhost:8000 after T004/T019
+      # provide the application and health endpoint.
+      - "8000:8000"
+    environment:
+      # Inside a Compose network, "db" resolves to the database container's address.
+      # Do not put Gemini API keys in this file; T005 will define local environment
+      # files for secrets and configuration.
+      DATABASE_URL: postgresql+psycopg://pnw:pnw_dev_password@db:5432/pnw_chatbot
+      ALLOWED_ORIGINS: http://localhost:5173
+    depends_on:
+      # The backend should start after PostgreSQL reports that it accepts connections.
+      # This prevents the application from failing just because the database needs
+      # a few seconds to initialize on the first run.
+      db:
+        condition: service_healthy
+    networks:
+      - pnw-network
+
+  # The React application will serve the browser bundle. Its Dockerfile and static
+  # server are created in T004. The browser talks to the backend through port 8000.
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      # Visit the widget from this computer at http://localhost:5173.
+      - "5173:8080"
+    depends_on:
+      # Starting after the backend container is started gives the UI a predictable
+      # startup order. The backend's database readiness is controlled above.
+      - backend
+    networks:
+      - pnw-network
+
+  # PostgreSQL stores source governance records, chunks, embeddings, and other
+  # server-side data. This image includes the pgvector extension needed for semantic
+  # similarity search in the RAG workflow.
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      # These values are for local development only. Production credentials belong
+      # in an external secret/configuration system and will be handled in T005.
+      POSTGRES_USER: pnw
+      POSTGRES_PASSWORD: pnw_dev_password
+      POSTGRES_DB: pnw_chatbot
+    ports:
+      # Exposing PostgreSQL is convenient for local tools such as psql or a database
+      # IDE. The backend still uses the internal hostname "db" above.
+      - "5432:5432"
+    volumes:
+      # A named volume keeps database files when the database container is recreated.
+      # `docker compose down -v` explicitly removes this volume and its data.
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # Docker runs this command periodically. A healthy result means PostgreSQL is
+      # ready to accept connections, not that application migrations have run yet.
+      test: ["CMD-SHELL", "pg_isready -U pnw -d pnw_chatbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - pnw-network
+
+# A user-defined network gives the services automatic DNS names: backend, frontend,
+# and db. It also keeps their internal traffic separate from unrelated containers.
+networks:
+  pnw-network:
+    driver: bridge
+
+# Named volumes live outside the short-lived database container. This is why database
+# records survive `docker compose up` followed by `docker compose down`.
+volumes:
+  postgres-data:
