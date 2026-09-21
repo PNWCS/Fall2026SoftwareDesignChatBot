@@ -30,7 +30,56 @@ A minimal excerpt used for retrieval and citation.
 | embedding | vector | pgvector embedding |
 | search_document | tsvector | Lexical search representation |
 
-A chunk stores only the excerpt text required for retrieval and source attribution; contextual metadata is handled at the source or request level rather than duplicated in every chunk.
+A chunk stores the excerpt and retrieval metadata required to preserve meaning and filter results safely.
+
+| heading_path | text | Section or table heading path; nullable for unstructured content |
+| locator | text | PDF page, table identifier, or section locator; required for citations when available |
+| campus | enum | Nullable applicability filter |
+| term | text | Nullable applicability filter |
+| program | text | Nullable applicability filter |
+| effective_from | date | Nullable |
+| effective_to | date | Nullable |
+
+The chunk references a `SourceVersion`, which records the exact content and embedding configuration used to create it.
+
+## SourceVersion
+
+Represents one immutable fetched and processed revision of an approved source.
+
+| Field | Type | Rules |
+|---|---|---|
+| id | UUID | Primary key |
+| source_id | UUID | Foreign key to ApprovedSource |
+| content_hash | text | Required; unique per source and content |
+| fetched_at | timestamp | Required |
+| extraction_status | enum | pending, complete, failed |
+| activation_status | enum | inactive, active, superseded, rejected |
+| embedding_model | text | Required when embeddings are generated |
+| embedding_dimension | integer | Required; must match database vector dimension |
+| chunking_version | text | Required; identifies deterministic chunking rules |
+| review_due_at | timestamp | Required for answer eligibility |
+| activated_at | timestamp | Nullable |
+
+Relationships: one source version has many `SourceChunk` records and one or more `IngestionJob` records. At most one current version for a source may be active.
+
+## IngestionJob
+
+Tracks each retryable preparation run and its validation evidence.
+
+| Field | Type | Rules |
+|---|---|---|
+| id | UUID | Primary key |
+| source_version_id | UUID | Foreign key to SourceVersion |
+| status | enum | pending, fetching, extracting, embedding, validating, complete, failed |
+| dry_run | boolean | Required |
+| chunk_count | integer | Required after extraction |
+| embedded_count | integer | Required after embedding |
+| validation_report | JSON | Required before activation; records checks and representative queries |
+| error_code | text | Nullable structured failure reason |
+| started_at | timestamp | Required |
+| finished_at | timestamp | Nullable |
+
+Required preparation checks are non-empty extraction, source hash consistency, complete chunk coverage, metadata validity, embedding dimension match, duplicate detection, and representative retrieval coverage. A failed job cannot activate its source version.
 
 ## StudentQuestion
 
@@ -97,6 +146,7 @@ An official office, advisor, department, or service for unresolved questions.
 ## State transitions
 
 - `ApprovedSource`: `active -> blocked`, `active -> archived`; answer eligibility requires the source to remain active and approved for the pilot corpus.
-- `Extraction`: `pending -> complete` or `pending -> failed`; failed extraction is never answer-eligible.
+- `SourceVersion`: `inactive -> active -> superseded`; failed validation becomes `rejected`; only one current version per source may be answer-eligible.
+- `IngestionJob`: `pending -> fetching -> extracting -> embedding -> validating -> complete`, or any stage -> `failed`; failed extraction or embedding is never answer-eligible.
 - `Answer`: generated internally, then returned only after grounding validation. Invalid model output becomes `error` or `refusal`, never an unvalidated answer.
 - `Session memory`: short-lived in-memory conversation state is created on first question, updated on accepted context, and discarded after TTL.

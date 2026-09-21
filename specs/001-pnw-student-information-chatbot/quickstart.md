@@ -10,6 +10,32 @@ This guide validates the pilot design described in [plan.md](plan.md), [data-mod
 - A Google Gemini API key and a configured free-tier-eligible Gemini model name for answer-generation tests; keep the key in the backend environment and never expose it to the frontend
 - A seeded test corpus containing at least one approved current source, one expired source, one conflicting pair, one campus-specific source, and one escalation destination
 
+## Prepare the RAG database
+
+Run the ingestion workflow against a source manifest before starting chat validation:
+
+```bash
+docker compose run --rm backend python -m app.ingest --manifest fixtures/pnw-sources.yml --dry-run
+docker compose run --rm backend python -m app.ingest --manifest fixtures/pnw-sources.yml
+```
+
+The dry run should report the source URL, content hash, extracted structure, chunk count,
+embedding model and dimension, and planned activation without writing answer-eligible data.
+The real run should be safe to repeat: an unchanged source reports an idempotent no-op,
+while changed content creates a new inactive version until validation succeeds.
+
+Verify the preparation result before chat tests:
+
+```bash
+docker compose run --rm backend python -m app.ingest verify --source-id <source-id>
+```
+
+Expected behavior: extraction is non-empty, chunks retain headings/pages and applicable
+campus or term metadata, every chunk has an embedding of the configured dimension, lexical
+and vector retrieval return the expected source for representative questions, and only a
+validated current version is active. A failed check leaves the version inactive and does
+not remove the previously active version.
+
 ## Start the pilot stack
 
 From the repository root:

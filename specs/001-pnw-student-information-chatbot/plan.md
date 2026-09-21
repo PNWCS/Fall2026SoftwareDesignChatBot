@@ -113,6 +113,57 @@ flowchart LR
 5. The backend assembles the final answer from approved evidence only, builds citations from the exact source records, and returns a structured response.
 6. If evidence is missing, stale, conflicting, or out of scope, the backend returns a clarification or refusal with an escalation path instead of a speculative answer.
 
+### RAG Vector Database Preparation Workflow
+
+Source preparation is an offline, repeatable workflow. It must complete before a source
+version can participate in retrieval or answer generation:
+
+1. Register the official URL, owner office, source type, applicability metadata, and
+    review window in the source manifest.
+2. Fetch the source through an ingestion worker, follow only approved links, record the
+    HTTP status and content hash, and preserve the document structure needed to interpret
+    headings, lists, tables, dates, campus labels, and PDF page boundaries.
+3. Normalize the content and create deterministic chunks using section and page/table
+    boundaries. Each chunk retains source version, ordinal, heading, page or locator,
+    campus, term, program, and effective-date metadata.
+4. Generate embeddings with the configured embedding model and record its model name and
+    dimension. A failed, incomplete, or dimension-mismatched embedding job cannot activate
+    the source version.
+5. Load the source version and chunks transactionally into PostgreSQL/pgvector, including
+    the lexical `tsvector` representation. Re-running the same content hash is idempotent;
+    changed content creates a new version rather than mutating answer history.
+6. Run ingestion checks for non-empty extraction, chunk coverage, embedding dimensions,
+    metadata completeness, duplicate chunks, and representative retrieval queries. Record
+    the results and keep the version inactive if any required check fails.
+7. Activate the version only after checks pass and its source status/review window are
+    eligible. Retrieval queries filter active, approved, current versions before applying
+    lexical/vector ranking; superseded versions remain retained for audit but are never
+    answer-eligible.
+
+The workflow is implemented as a CLI or scheduled worker, not as a public chat endpoint.
+It must support a dry-run mode, structured job logs without student data, retryable fetch
+and embedding stages, and a rollback that deactivates the new version without deleting
+prior audit records.
+
+```mermaid
+flowchart TD
+    A[Source manifest] --> B[Fetch approved URL]
+    B --> C[Record HTTP status and content hash]
+    C --> D[Extract structure from HTML or PDF]
+    D --> E[Create deterministic metadata-rich chunks]
+    E --> F[Generate embeddings]
+    F --> G{Embedding dimension matches?}
+    G -- No --> X[Reject version and retain failure report]
+    G -- Yes --> H[Transactional load into PostgreSQL and pgvector]
+    H --> I[Build lexical tsvector index]
+    I --> J[Run coverage, metadata, duplicate, and retrieval checks]
+    J --> K{All validation checks pass?}
+    K -- No --> X
+    K -- Yes --> L[Activate current source version]
+    L --> M[Filter active approved versions during RAG retrieval]
+    X --> N[Keep prior active version available]
+```
+
 ```mermaid
 sequenceDiagram
     participant Student

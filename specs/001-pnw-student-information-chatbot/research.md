@@ -54,6 +54,18 @@
 - **Rationale**: Gemini provides a practical hosted LLM option for the pilot while the backend boundary keeps the API key out of the browser and allows source filtering, structured-output validation, timeout handling, and provider replacement without changing the frontend contract. Free-tier quotas and model availability can change, so deployment configuration must remain adjustable.
 - **Alternatives considered**: A paid-only hosted model could offer higher quotas but adds pilot cost; a locally hosted model avoids provider quotas but increases infrastructure and operations requirements; exposing the provider directly to the frontend would leak credentials and bypass grounding controls.
 
+## Decision 10: Prepare the RAG store with versioned, idempotent ingestion
+
+- **Decision**: Use a staged ingestion workflow that registers a source manifest, fetches and hashes the source, extracts structure-aware content, creates metadata-rich deterministic chunks, generates embeddings, loads lexical and vector representations transactionally, runs retrieval-quality checks, and activates the source version only after validation. Use the content hash plus source identity as the idempotency key, and retain superseded versions for audit without making them eligible for answers.
+- **Rationale**: Embeddings are only useful when their source text, dimensions, applicability, and review state remain traceable. Versioned activation prevents partial loads, stale chunks, and changed content from silently altering historical answers. Hybrid lexical/vector retrieval preserves exact matches for dates, campus names, and office contacts while semantic search handles paraphrases.
+- **Alternatives considered**: A one-off database seed is simpler but cannot reliably handle source updates, retries, partial failures, or review rollback. A managed vector store would provide retrieval infrastructure but would separate embeddings from the relational governance records required by the pilot.
+
+## Decision 11: Use embedding and retrieval validation gates
+
+- **Decision**: Store the embedding model name, dimension, chunking configuration, and ingestion job status with each source version. Reject dimension mismatches and incomplete extraction, and require representative retrieval queries to meet a configured recall/coverage threshold before activation. Start with exact pgvector search and benchmark filtered HNSW separately.
+- **Rationale**: A successful database insert does not prove that a RAG corpus is usable or safe. Explicit validation catches malformed PDFs, lost table context, wrong embedding configuration, and metadata filters that hide required evidence before the model can answer.
+- **Alternatives considered**: Trusting row counts or embedding API success would miss semantic retrieval failures; enabling HNSW immediately could make filtered recall harder to reason about for the small pilot corpus.
+
 ## Operational clarification
 
 The spec combines a fixed approved corpus with no mandatory human review before a new source is used. The implementation interprets this as follows: only entries marked `approved` in the corpus can answer students; ingestion may be automated, but unapproved entries remain ineligible; scheduled review can mark entries expired, blocked, or archived. When effective dates are unavailable, the source remains eligible only while its explicit review window is valid.
