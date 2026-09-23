@@ -19,7 +19,7 @@ description: "Executable implementation tasks for the PNW Student Information Ch
 - [X] T002 [P] Create the React 18+ Vite TypeScript project structure in `frontend/package.json`, `frontend/src/`, and `frontend/tests/` with React Testing Library dependencies.
 - [X] T003 [P] Create Docker Compose service definitions for the backend, frontend static server, and PostgreSQL/pgvector database in `docker-compose.yml`.
 - [X] T004 [P] Add backend and frontend container build definitions in `backend/Dockerfile` and `frontend/Dockerfile` using non-root runtime users.
-- [ ] T005 [P] Add shared environment examples and local developer configuration in `.env.example`, `backend/.env.example`, and `frontend/.env.example` without storing Gemini credentials.
+- [X] T005 [P] Add shared environment examples and local developer configuration in `.env.example`, `backend/.env.example`, and `frontend/.env.example` without storing Gemini credentials.
 - [ ] T006 [P] Configure Python, TypeScript, and Markdown quality checks in `backend/pyproject.toml`, `frontend/package.json`, and `.github/workflows/ci.yml`.
 
 ---
