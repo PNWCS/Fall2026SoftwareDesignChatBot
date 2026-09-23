@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD024 -->
+
 # Chat API Contract
 
 This document describes the public backend endpoint contract for the PNW Student Information Chatbot pilot. The contract is intentionally written as Markdown instead of YAML so the feature docs remain easy to review alongside the plan and data model.
