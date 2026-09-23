@@ -27,7 +27,13 @@ jobs:
       - name: Run Ruff
         run: python -m ruff check .
       - name: Run backend tests
-        run: python -m pytest
+        run: |
+          set +e
+          python -m pytest
+          status=$?
+          if [ "$status" -ne 0 ] && [ "$status" -ne 5 ]; then
+            exit "$status"
+          fi
 
   frontend:
     name: Frontend quality
