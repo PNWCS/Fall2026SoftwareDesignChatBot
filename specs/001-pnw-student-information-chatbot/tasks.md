@@ -30,7 +30,7 @@ description: "Executable implementation tasks for the PNW Student Information Ch
 
 **Critical**: No user story work can begin until this phase is complete.
 
-- [ ] T007 Create Alembic migration configuration in `backend/alembic.ini` and `backend/alembic/env.py`, including the PostgreSQL pgvector extension migration in `backend/alembic/versions/001_enable_pgvector.py`.
+- [X] T007 Create Alembic migration configuration in `backend/alembic.ini` and `backend/alembic/env.py`, including the PostgreSQL pgvector extension migration in `backend/alembic/versions/001_enable_pgvector.py`.
 - [ ] T008 [P] Create SQLAlchemy base configuration and database session lifecycle in `backend/src/db/base.py` and `backend/src/db/session.py` with connection and query timeouts.
 - [ ] T009 [P] Implement typed server configuration in `backend/src/config.py` for database URLs, allowed origins, request limits, rate limits, Gemini model settings, embedding model and dimension, source review windows, and conversation TTL.
 - [ ] T010 Create relational models and migrations in `backend/src/models/source.py`, `backend/src/models/source_version.py`, `backend/src/models/source_chunk.py`, `backend/src/models/ingestion_job.py`, `backend/src/models/escalation.py`, `backend/src/models/question.py`, `backend/src/models/answer.py`, and `backend/src/models/citation.py`; enforce required fields, enum values, source/content-hash uniqueness, one active source version per source, and `embedding_dimension` matching the configured vector dimension.
