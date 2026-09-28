@@ -1,13 +1,11 @@
-import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg://pnw:pnw_dev_password@localhost:5432/pnw_chatbot",
-)
+from src.config import settings
+
+DATABASE_URL = settings.database_url
 DB_CONNECT_TIMEOUT_SECONDS = 5
 DB_POOL_TIMEOUT_SECONDS = 5
 DB_STATEMENT_TIMEOUT_MS = 10_000
